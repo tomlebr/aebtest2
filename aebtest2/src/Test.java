@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Coding test for job candidates.<br>
@@ -12,9 +14,9 @@ import java.util.Random;
  */
 public class Test implements Runnable {
 
-	private static int MAX_THREADS = 100;
-	private static int MAX_RND = 500;
-	
+	private static int MAX_THREADS = 1000;
+	private static int MAX_RND = 5000;
+
 	public static void main(String[] args) {
 		// first test (function):
 		doIt();
@@ -23,8 +25,9 @@ public class Test implements Runnable {
 			doIt();
 		}
 	}
-	
-	static ArrayList<String> res = new ArrayList<String>();
+
+	static Set<String> res = new HashSet<String>();
+	static ArrayList<String> res2 = new ArrayList<String>();
 
 	static void doIt() {
 		Thread[] ts = new Thread[MAX_THREADS];
@@ -42,12 +45,16 @@ public class Test implements Runnable {
 			}
 		}
 		System.out.println(res);
-		Collections.sort(res);
-		validateRes();
-		for (String rndItem : res) {
-			System.out.println(rndItem);
-		}
+
+		res2.clear();
+		res2.addAll(res);
 		res.clear();
+
+		Collections.sort(res2);
+		validateRes();
+		//for (String rndItem : res2) {
+		//	System.out.println(rndItem);
+		//}
 	}
 
 	public Test() {
@@ -55,37 +62,47 @@ public class Test implements Runnable {
 
 	public void run() {
 		try {
-			xxx: while (true) {
+			boolean success = false;
+			do {
 				String n = String.valueOf(new Random().nextInt(MAX_RND));
-				synchronized (res) {
-					int rndSize = res.size();
-					for (int i = 0; i < rndSize; i++) {
-						if (res.get(i) == n)
-							continue xxx;
-					}
-					res.add(n);
-				}
-				break;
-			}
+				success = threadSafeAdd(n);
+			} while (!success);
 		} catch (Throwable e) {
 			System.err.println(e.toString());
 		}
 	}
 
+	private boolean threadSafeAdd(String n) {
+		synchronized (res) {
+			if (res.isEmpty()) {
+				res.add(n);
+				return true;
+			}
+			if (res.contains(n)) {
+				return false;
+			}
+			res.add(n);
+			return true;
+		}
+	}
+
 	private static boolean validateRes() {
-		int rndSize = res.size();
+		int rndSize = res2.size();
+		if (rndSize != MAX_THREADS) {
+			System.err.println("failed - not enough values:" + rndSize + " <> " + MAX_THREADS);
+		}
 		if (rndSize < 2) {
 			// empty list or 1 item - always sorted
 			return true;
 		}
 		for (int i = 0; i < rndSize - 1; i++) {
-			if (res.get(i) == null) {
+			if (res2.get(i) == null) {
 				System.err.println("failed - a null present");
 				// empty item
 				return false;
 			}
-			if (res.get(i).compareTo(res.get(i + 1)) > 0) {
-				System.err.println("failed - " + res.get(i) + " > " + res.get(i + 1));
+			if (res2.get(i).compareTo(res2.get(i + 1)) > 0) {
+				System.err.println("failed - " + res2.get(i) + " > " + res2.get(i + 1));
 				return false;
 			}
 
