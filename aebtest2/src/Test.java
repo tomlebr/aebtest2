@@ -12,26 +12,31 @@ import java.util.Random;
  */
 public class Test implements Runnable {
 
+	private static int MAX_THREADS = 100;
+	private static int MAX_RND = 500;
+	
 	public static void main(String[] args) {
 		// first test (function):
 		doIt();
 		// second test (stability):
-		// while (true) { doIt(); }
+		while (true) {
+			doIt();
+		}
 	}
-
+	
 	static ArrayList<String> res = new ArrayList<String>();
 
 	static void doIt() {
-		Thread[] ts = new Thread[100];
-		for (int i = 0; i < 100; i++) {
+		Thread[] ts = new Thread[MAX_THREADS];
+		for (int i = 0; i < MAX_THREADS; i++) {
 			Thread t = new Thread(new Test(), "" + i);
 			ts[i] = t;
 		}
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < MAX_THREADS; i++) {
 			ts[i].start();
 		}
 		int i = 0;
-		while (i < 100) {
+		while (i < MAX_THREADS) {
 			if (ts[i++].isAlive()) {
 				i = 0;
 			}
@@ -42,6 +47,7 @@ public class Test implements Runnable {
 		for (String rndItem : res) {
 			System.out.println(rndItem);
 		}
+		res.clear();
 	}
 
 	public Test() {
@@ -50,7 +56,7 @@ public class Test implements Runnable {
 	public void run() {
 		try {
 			xxx: while (true) {
-				String n = "" + new Random().nextInt(500);
+				String n = String.valueOf(new Random().nextInt(MAX_RND));
 				synchronized (res) {
 					int rndSize = res.size();
 					for (int i = 0; i < rndSize; i++) {
@@ -65,33 +71,32 @@ public class Test implements Runnable {
 			System.err.println(e.toString());
 		}
 	}
-	
+
 	private static boolean validateRes() {
 		int rndSize = res.size();
 		if (rndSize < 2) {
 			// empty list or 1 item - always sorted
 			return true;
 		}
-		for (int i = 0; i < rndSize-1; i++) {
+		for (int i = 0; i < rndSize - 1; i++) {
 			if (res.get(i) == null) {
 				System.err.println("failed - a null present");
 				// empty item
 				return false;
 			}
-			if (res.get(i).compareTo(res.get(i+1)) > 0) {
-				System.err.println("failed - " + res.get(i) + " > " + res.get(i+1));
+			if (res.get(i).compareTo(res.get(i + 1)) > 0) {
+				System.err.println("failed - " + res.get(i) + " > " + res.get(i + 1));
 				return false;
 			}
-			
+
 		}
-		System.err.println("validated ok");
+		System.out.println("validated ok");
 		return true;
 	}
-	
-    void testSortedRes() {
-    	doIt();
-        // assertTrue(validateRes());  
-    }
 
+	void testSortedRes() {
+		doIt();
+		// assertTrue(validateRes());
+	}
 
 }
