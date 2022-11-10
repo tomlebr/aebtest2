@@ -38,6 +38,7 @@ public class Test implements Runnable {
 		}
 		System.out.println(res);
 		Collections.sort(res);
+		validateRes();
 		for (String rndItem : res) {
 			System.out.println(rndItem);
 		}
@@ -64,5 +65,33 @@ public class Test implements Runnable {
 			System.err.println(e.toString());
 		}
 	}
+	
+	private static boolean validateRes() {
+		int rndSize = res.size();
+		if (rndSize < 2) {
+			// empty list or 1 item - always sorted
+			return true;
+		}
+		for (int i = 0; i < rndSize-1; i++) {
+			if (res.get(i) == null) {
+				System.err.println("failed - a null present");
+				// empty item
+				return false;
+			}
+			if (res.get(i).compareTo(res.get(i+1)) > 0) {
+				System.err.println("failed - " + res.get(i) + " > " + res.get(i+1));
+				return false;
+			}
+			
+		}
+		System.err.println("validated ok");
+		return true;
+	}
+	
+    void testSortedRes() {
+    	doIt();
+        // assertTrue(validateRes());  
+    }
+
 
 }
