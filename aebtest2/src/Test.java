@@ -15,7 +15,7 @@ import java.util.Set;
 public class Test implements Runnable {
 
 	private static int MAX_THREADS = 1000;
-	private static int MAX_RND = 5000;
+	private static int MAX_RND = 5000; // must be > MAX_THREADS
 
 	public static void main(String[] args) {
 		// first test (function):
@@ -30,20 +30,15 @@ public class Test implements Runnable {
 	static ArrayList<String> res2 = new ArrayList<String>();
 
 	static void doIt() {
-		Thread[] ts = new Thread[MAX_THREADS];
+		ThreadGroup tg = new ThreadGroup("Test");
 		for (int i = 0; i < MAX_THREADS; i++) {
-			Thread t = new Thread(new Test(), "" + i);
-			ts[i] = t;
+			Thread t = new Thread(tg, new Test(), String.valueOf(i));
+			t.start();
 		}
-		for (int i = 0; i < MAX_THREADS; i++) {
-			ts[i].start();
+
+		while (tg.activeCount() > 0) {
 		}
-		int i = 0;
-		while (i < MAX_THREADS) {
-			if (ts[i++].isAlive()) {
-				i = 0;
-			}
-		}
+
 		System.out.println(res);
 
 		res2.clear();
@@ -52,9 +47,9 @@ public class Test implements Runnable {
 
 		Collections.sort(res2);
 		validateRes();
-		//for (String rndItem : res2) {
-		//	System.out.println(rndItem);
-		//}
+		for (String rndItem : res2) {
+			System.out.println(rndItem);
+		}
 	}
 
 	public Test() {
